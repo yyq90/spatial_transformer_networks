@@ -13,13 +13,38 @@ from keras.optimizers import Adam, SGD
 
 import keras.backend as K
 from src.spatial_transformer import SpatialTransformer
+import dataLoad
 
-batch_size = 128
-nb_classes = 10
 nb_epoch = 12
 
-DIM = 60
-mnist_cluttered = "./datasets/mnist_cluttered_60x60_6distortions.npz"
+batch_size = 32
+nb_classes = 100
+data_augmentation = True
+
+# input image dimensions
+# img_rows, img_cols = 32, 32
+img_rows, img_cols = 256, 256
+# The CIFAR10 images are RGB.
+# img_channels = 3
+img_channels = 3
+
+# The data, shuffled and split between train and test sets:
+# (X_train, y_train), (X_test, y_test) = cifar10.load_data()
+X_train,y_train,X_test,y_test= dataLoad.dataload(img_rows,img_cols,gray=0)
+
+# Convert class vectors to binary class matrices.
+Y_train = np_utils.to_categorical(y_train, nb_classes)
+Y_test = np_utils.to_categorical(y_test, nb_classes)
+
+X_train = X_train.astype('float32')
+X_test = X_test.astype('float32')
+
+# subtract mean and normalize
+mean_image = np.mean(X_train, axis=0)
+X_train -= mean_image
+X_test -= mean_image
+X_train /= 128.
+X_test /= 128.
 
 
 
@@ -28,36 +53,23 @@ mnist_cluttered = "./datasets/mnist_cluttered_60x60_6distortions.npz"
 
 
 
-data = np.load(mnist_cluttered)
-X_train, y_train = data['x_train'], np.argmax(data['y_train'], axis=-1)
-X_valid, y_valid = data['x_valid'], np.argmax(data['y_valid'], axis=-1)
-X_test, y_test = data['x_test'], np.argmax(data['y_test'], axis=-1)
 # reshape for convolutions
-X_train = X_train.reshape((X_train.shape[0], DIM, DIM, 1))
-X_valid = X_valid.reshape((X_valid.shape[0], DIM, DIM, 1))
-X_test = X_test.reshape((X_test.shape[0], DIM, DIM, 1))
 
-y_train = np_utils.to_categorical(y_train, nb_classes)
-y_valid = np_utils.to_categorical(y_valid, nb_classes)
-y_test = np_utils.to_categorical(y_test, nb_classes)
 
-print("Train samples: {}".format(X_train.shape))
-print("Validation samples: {}".format(X_valid.shape))
-print("Test samples: {}".format(X_test.shape))
 
 
 input_shape =  np.squeeze(X_train.shape[1:])
-input_shape = (60,60,1)
+input_shape = (img_rows,img_cols,img_channels)
 print("Input shape:",input_shape)
 
 
 
 
-plt.figure(figsize=(7,7))
-plt.imshow(X_train[101].reshape(DIM, DIM), cmap='gray', interpolation='none')
-plt.title('Cluttered MNIST', fontsize=20)
-plt.axis('off')
-plt.show()
+# plt.figure(figsize=(7,7))
+# plt.imshow(X_train[132],  interpolation='none')
+# plt.title('Cluttered', fontsize=20)
+# plt.axis('off')
+# plt.show()
 
 
 
@@ -70,14 +82,14 @@ weights = [W, b.flatten()]
 
 
 locnet = Sequential()
-locnet.add(MaxPooling2D(pool_size=(2,2), input_shape=input_shape))
-locnet.add(Convolution2D(20, (5, 5)))
-locnet.add(MaxPooling2D(pool_size=(2,2)))
-locnet.add(Convolution2D(20, (5, 5)))
+locnet.add(MaxPooling2D(pool_size=(2,2), input_shape=input_shape,name='pooling1_input'))
+locnet.add(Convolution2D(20, (5, 5),name='conv1'))
+locnet.add(MaxPooling2D(pool_size=(2,2),name='pooling2'))
+locnet.add(Convolution2D(20, (5, 5),name='conv2'))
 
 locnet.add(Flatten())
-locnet.add(Dense(50))
-locnet.add(Activation('relu'))
+locnet.add(Dense(50,name='dense1'))
+locnet.add(Activation('relu',name='Activation1'))
 locnet.add(Dense(6, weights=weights))
 #locnet.add(Activation('sigmoid'))
 
@@ -103,7 +115,8 @@ model.add(Activation('softmax'))
 
 model.compile(loss='categorical_crossentropy', optimizer='adam')
 
-
+print(locnet.summary())
+print(model.summary())
 
 XX = model.input
 YY = model.layers[0].output
@@ -112,7 +125,6 @@ F = K.function([XX], [YY])
 print(X_train.shape[0]/batch_size)
 
 nb_epochs = 10  # you probably want to go longer than this
-batch_size = 256
 fig = plt.figure()
 try:
     for e in range(nb_epochs):
@@ -123,13 +135,14 @@ try:
             f = b * batch_size
             l = (b + 1) * batch_size
             X_batch = X_train[f:l].astype('float32')
-            y_batch = y_train[f:l].astype('float32')
-            loss = model.train_on_batch(X_batch, y_batch)
+            Y_batch = Y_train[f:l].astype('float32')
+            loss = model.train_on_batch(X_batch, Y_batch)
             # print(loss)
             # progbar.add(X_batch.shape[0], values=[("train loss", loss)])
-        scorev = model.evaluate(X_valid, y_valid, verbose=1)
-        scoret = model.evaluate(X_test, y_test, verbose=1)
-        print('Epoch: {0} | Valid: {1} | Test: {2}'.format(e, scorev, scoret))
+        # scorev = model.evaluate(X_valid, y_valid, verbose=1)
+        scoret = model.evaluate(X_test, Y_test, verbose=1)
+        # print('Epoch: {0} | Valid: {1} | Test: {2}'.format(e, scorev, scoret))
+        print('Epoch: {0} | Valid: {1} | Test: {2}'.format(e, 0, scoret))
 
         if e % 1 == 0:
             Xresult = F([X_batch[:9]])
