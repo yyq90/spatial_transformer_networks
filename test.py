@@ -53,11 +53,11 @@ print("Input shape:",input_shape)
 
 
 
-plt.figure(figsize=(7,7))
-plt.imshow(X_train[101].reshape(DIM, DIM), cmap='gray', interpolation='none')
-plt.title('Cluttered MNIST', fontsize=20)
-plt.axis('off')
-plt.show()
+# plt.figure(figsize=(7,7))
+# plt.imshow(X_train[101].reshape(DIM, DIM), cmap='gray', interpolation='none')
+# plt.title('Cluttered MNIST', fontsize=20)
+# plt.axis('off')
+# plt.show()
 
 
 
@@ -103,7 +103,8 @@ model.add(Activation('softmax'))
 
 model.compile(loss='categorical_crossentropy', optimizer='adam')
 
-
+print(locnet.summary())
+print(model.summary())
 
 XX = model.input
 YY = model.layers[0].output

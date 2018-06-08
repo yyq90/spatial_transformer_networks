@@ -17,20 +17,19 @@ import dataLoad
 
 nb_epoch = 12
 
-batch_size = 128
+batch_size = 256
 nb_classes = 100
-data_augmentation = True
 
 # input image dimensions
 # img_rows, img_cols = 32, 32
 img_rows, img_cols = 256, 256
 # The CIFAR10 images are RGB.
 # img_channels = 3
-img_channels = 3
+img_channels = 1
 
 # The data, shuffled and split between train and test sets:
 # (X_train, y_train), (X_test, y_test) = cifar10.load_data()
-X_train,y_train,X_test,y_test= dataLoad.dataload(img_rows,img_cols,gray=0)
+X_train,y_train,X_test,y_test= dataLoad.dataload(img_rows,img_cols,gray=1)
 
 # Convert class vectors to binary class matrices.
 Y_train = np_utils.to_categorical(y_train, nb_classes)
@@ -40,15 +39,16 @@ X_train = X_train.astype('float32')
 X_test = X_test.astype('float32')
 
 # subtract mean and normalize
-mean_image = np.mean(X_train, axis=0)
-X_train -= mean_image
-X_test -= mean_image
-X_train /= 128.
-X_test /= 128.
+# # mean_image = np.mean(X_train, axis=0)
+# X_train -= mean_image
+# X_test -= mean_image
+X_train /= 256.
+X_test /= 256.
 
 
 
-
+X_train = X_train.reshape((X_train.shape[0], img_rows, img_cols, 1))
+X_test = X_test.reshape((X_test.shape[0], img_rows, img_cols, 1))
 
 
 
@@ -124,13 +124,13 @@ F = K.function([XX], [YY])
 
 print(X_train.shape[0]/batch_size)
 
-nb_epochs = 10  # you probably want to go longer than this
+nb_epochs = 200  # you probably want to go longer than this
 fig = plt.figure()
 try:
     for e in range(nb_epochs):
         print('-' * 40)
         # progbar = generic_utils.Progbar(X_train.shape[0])
-        for b in range(150):
+        for b in range(10):
             # print(b)
             f = b * batch_size
             l = (b + 1) * batch_size
@@ -144,12 +144,22 @@ try:
         # print('Epoch: {0} | Valid: {1} | Test: {2}'.format(e, scorev, scoret))
         print('Epoch: {0} | Valid: {1} | Test: {2}'.format(e, 0, scoret))
 
-        if e % 1 == 0:
+        if e % 20 == 0:
             Xresult = F([X_batch[:9]])
             plt.clf()
             for i in range(9):
                 plt.subplot(3, 3, i + 1)
                 image = np.squeeze(Xresult[0][i])
+                plt.imshow(image, cmap='gray')
+                plt.axis('off')
+            fig.canvas.draw()
+            plt.show()
+
+
+            plt.clf()
+            for i in range(9):
+                plt.subplot(3, 3, i + 1)
+                image = np.squeeze(X_batch[0][i])
                 plt.imshow(image, cmap='gray')
                 plt.axis('off')
             fig.canvas.draw()

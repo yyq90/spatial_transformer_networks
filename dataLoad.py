@@ -69,8 +69,8 @@ def dataload(img_w=300,img_h=300,val_ratio = 0.95,gray=0):
             img_filepath = join(img_dirpath, filename)
             img = cv2.imread(img_filepath)
             if gray==1:
-                img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                img = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2RGB)
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                # img = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2RGB)
             img = cv2.resize(img, (img_w, img_h))
             img = img.astype(np.float32)
 
