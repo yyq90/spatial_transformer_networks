@@ -17,7 +17,7 @@ import dataLoad
 
 nb_epoch = 12
 
-batch_size = 32
+batch_size = 128
 nb_classes = 100
 data_augmentation = True
 
