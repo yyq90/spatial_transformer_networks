@@ -57,6 +57,7 @@ def dataload(img_w=300,img_h=300,val_ratio = 0.95,gray=0):
 
     # img_dirpath = "c:/tempProjects/keras-resnet/data/train"
     img_dirpath = "d:/git/keras-resnet/data/train"
+    train_name =list()
     # X=[]
     # y=[]
     X_train = []
@@ -79,6 +80,7 @@ def dataload(img_w=300,img_h=300,val_ratio = 0.95,gray=0):
             # y.append(labelDict[name])
             X_train.append(img)
             y_train.append(labelDict[name])
+            train_name.append(name)
             if name in validateList:
                 X_val.append(img)
                 y_val.append(labelDict[name])
@@ -125,7 +127,7 @@ def dataload(img_w=300,img_h=300,val_ratio = 0.95,gray=0):
     y_train = np.reshape(y_train,(len(y_train),1))
 
 
-    return X_train,y_train-1,X_val,y_val-1
+    return X_train,y_train-1,X_val,y_val-1,train_name
 def testLoad(img_w=300,img_h=300,val_ratio = 0.95):
     # load y dict
     # picDict= testdictload("c:/tempProjects/keras-resnet/data/test.txt")

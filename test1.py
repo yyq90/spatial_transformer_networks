@@ -22,14 +22,14 @@ nb_classes = 100
 
 # input image dimensions
 # img_rows, img_cols = 32, 32
-img_rows, img_cols = 256, 256
+img_rows, img_cols = 60, 60
 # The CIFAR10 images are RGB.
 # img_channels = 3
 img_channels = 1
 
 # The data, shuffled and split between train and test sets:
 # (X_train, y_train), (X_test, y_test) = cifar10.load_data()
-X_train,y_train,X_test,y_test= dataLoad.dataload(img_rows,img_cols,gray=1)
+X_train,y_train,X_test,y_test,train_name= dataLoad.dataload(img_rows,img_cols,gray=1)
 
 # Convert class vectors to binary class matrices.
 Y_train = np_utils.to_categorical(y_train, nb_classes)
@@ -97,7 +97,7 @@ locnet.add(Dense(6, weights=weights))
 model = Sequential()
 
 model.add(SpatialTransformer(localization_net=locnet,
-                             output_size=(30,30), input_shape=input_shape))
+                             output_size=(128,128), input_shape=input_shape))
 
 model.add(Convolution2D(32, (3, 3), padding='same'))
 model.add(Activation('relu'))
@@ -144,7 +144,7 @@ try:
         # print('Epoch: {0} | Valid: {1} | Test: {2}'.format(e, scorev, scoret))
         print('Epoch: {0} | Valid: {1} | Test: {2}'.format(e, 0, scoret))
 
-        if e % 20 == 0:
+        if e % 5 == 0:
             Xresult = F([X_batch[:9]])
             plt.clf()
             for i in range(9):
@@ -159,8 +159,8 @@ try:
             plt.clf()
             for i in range(9):
                 plt.subplot(3, 3, i + 1)
-                image = np.squeeze(X_batch[0][i])
-                plt.imshow(image, cmap='gray')
+                image = np.squeeze(X_batch[i])
+                plt.imshow(image)
                 plt.axis('off')
             fig.canvas.draw()
             plt.show()
